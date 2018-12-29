@@ -57,16 +57,17 @@ int main(int argc, char *argv[]) {
     if (output.assignments().size() != input.flights().size()) { error |= CheckerFlag::FormatError; }
     int f = 0;
     for (auto gate = output.assignments().begin(); gate != output.assignments().end(); ++gate, ++f) {
+        const auto &flight(input.flights(f));
         // check constraints.
         if ((*gate < 0) || (*gate >= input.airport().gates().size())) { error |= CheckerFlag::FlightNotAssignedError; }
-        for (auto ig = input.flights(f).incompatiblegates().begin(); ig != input.flights(f).incompatiblegates().end(); ++ig) {
+        for (auto ig = flight.incompatiblegates().begin(); ig != flight.incompatiblegates().end(); ++ig) {
             if (*gate == *ig) { error |= CheckerFlag::IncompatibleAssignmentError; }
         }
-        const auto &flight(input.flights(f));
         for (auto flight1 = input.flights().begin(); flight1 != input.flights().end(); ++flight1) {
+            if (flight.id() == flight1->id()) { continue; }
             if (*gate != output.assignments(flight1->id())) { continue; }
             int gap = max(flight.turnaround().begin() - flight1->turnaround().end(),
-                flight1->turnaround().begin() - flight.turnaround().begin());
+                flight1->turnaround().begin() - flight.turnaround().end());
             if (gap < input.airport().gates(*gate).mingap()) { error |= CheckerFlag::FlightOverlapError; }
         }
 
